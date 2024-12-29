@@ -66,14 +66,73 @@ regd_users.post("/login", (req, res) => {
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+  // Check if user is authenticated
+  if (req.session.authorization) {
+    console.log("logged in");
+    let token = req.session.authorization['accessToken']; // Access Token
+    
+    // Verify JWT token for user authentication
+    jwt.verify(token, "access", (err, user) => {
+      if (!err) {
+        const isbn = req.params.isbn;
+        const book = helpers.findBookByISBN(isbn);
+        if (book === undefined) {
+          return res.status(200).json({ message: `Book with ISBN: ${isbn} not found.`});
+        }
+        req.user = user; // Set authenticated user data on the request object
+        console.log("Add or update the review");
+        const username = req.session.authorization['username'];
+        const reviewHeadline = req.body.headline;
+        const reviewerName = req.body.reviewer;
+        const reviewContent = req.body.content;
+        const review = {
+          "headline": reviewHeadline,
+          "content": reviewContent,
+          "reviewer": reviewerName,
+          "username": username
+        }
+        const result = addOrUpdateReview(username, isbn, review);
+        const data = { message: `Your review has been ${result['action']}.`};
+        return res.status(200).json(data);
+      } else {
+        // Return error if token verification fails
+        return res.status(403).json({ message: "User not authenticated" }); 
+      }
+    });
+  // Return error if no access token is found in the session
+  } else {
+    return res.status(403).json({ message: "User not logged in" });
+  }
 });
 
 async function hashPassword(password) {
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
   return hashedPassword;
+}
+
+function addOrUpdateReview(username, isbn, review) {
+  const reviews = helpers.findBookReviewsByISBN(isbn);
+  const _reviews = Object.values(reviews);
+  const existed = _reviews.find((r) => r.username === username);
+  console.log("existed", existed);
+  if (existed === undefined) {
+    const count = Object.keys(reviews).length;
+    reviews[(count + 1).toString()] = review;
+    // console.log(reviews);
+    console.log("add");
+    return {action: "added", reviews: reviews};
+  } else {
+    for (const [key, value] of Object.entries(reviews)) {
+      if (value['username'] === username) {
+        reviews[key] = review;
+        break;
+      }
+    }
+    console.log(reviews);
+    console.log("update");
+    return {action: "updated", reviews: reviews};
+  }
 }
 
 module.exports.authenticated = regd_users;
