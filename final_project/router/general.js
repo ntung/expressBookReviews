@@ -1,9 +1,10 @@
 const express = require('express');
 let books = require("./booksdb.js");
+const { hash } = require('bcrypt');
 let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
-let hashPassword = require("./auth_users.js").hashPassword;
 const public_users = express.Router();
+const bcrypt = require('bcrypt');
 
 
 // Function to check if the user exists
@@ -27,8 +28,9 @@ public_users.post("/register", (req, res) => {
   } else if (username && password) {
     // check the username whether it exists or not
     if (!doesExist(username)) {
-      const encryptedPassword = hashPassword(password);
-      users.push({"username": username, "password": encryptedPassword});
+      bcrypt.hash(password, 10, function(error, hash) {
+        users.push({"username": username, "password": hash});
+      });
       data["status_code"] = 200;
       data["message"] = "User successfully registered. Now you can login.";
     } else {
@@ -39,7 +41,7 @@ public_users.post("/register", (req, res) => {
     data["status_code"] = 404;
     data["error"] = "Unable to register user.";
   }
-
+  console.log(data);
   res.status(data["status_code"]).json(data);
 });
 

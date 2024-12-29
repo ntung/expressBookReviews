@@ -8,21 +8,25 @@ const app = express();
 
 app.use(express.json());
 
-app.use("/customer",session({secret:"fingerprint_customer",resave: true, saveUninitialized: true}))
+app.use("/customer", session({secret:"fingerprint_customer",resave: true, saveUninitialized: true}))
 
 // Middleware for user authentication
-app.use("/customser/auth/*", (req, res, next) => {
+app.use("/customer/auth/*", (req, res, next) => {
     // Check if user is authenticated
+    console.log(req.session);
     if (req.session.authorization) {
         let token = req.session.authorization['accessToken']; // Access Token
         
         // Verify JWT token for user authentication
         jwt.verify(token, "access", (err, user) => {
             if (!err) {
-                req.user = user; // Set authenticated user data on the request object
-                next(); // Proceed to the next middleware
+                // Set authenticated user data on the request object
+                req.user = user; 
+                // Proceed to the next middleware
+                next(); 
             } else {
-                return res.status(403).json({ message: "User not authenticated" }); // Return error if token verification fails
+                // Return error if token verification fails
+                return res.status(403).json({ message: "User not authenticated" }); 
             }
         });
         
