@@ -78,7 +78,13 @@ public_users.get('/author/:author',function (req, res) {
 public_users.get('/title/:title',function (req, res) {
   const title = req.params.title;
   const foundBooks = helpers.filterBooksIteratingOverDictionary("title", title);
-  res.send(foundBooks);
+  const getBookDetails = new Promise((resolve, reject) => {
+    resolve(res.send(foundBooks));
+  });
+  getBookDetails.then(() => {
+    console.log("List of books by the title `" + title + 
+      "` have been returned!");
+  })
 });
 
 //  Get book review
