@@ -65,7 +65,13 @@ public_users.get('/isbn/:isbn',function (req, res) {
 public_users.get('/author/:author',function (req, res) {
   const author = req.params.author;
   const foundBooks = helpers.filterBooksIteratingOverDictionary("author", author);
-  res.send(foundBooks);
+  const getBookDetails = new Promise((resolve, reject) => {
+    resolve(res.send(foundBooks));
+  });
+  getBookDetails.then(() => {
+    console.log("The details of the book writed by the author " + author + 
+      " have been returned!");
+  })
 });
 
 // Get all books based on title
