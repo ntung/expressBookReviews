@@ -3,17 +3,9 @@ let books = require("./booksdb.js");
 const { hash } = require('bcrypt');
 let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
+const helpers = require('./helpers.js');
 const public_users = express.Router();
 const bcrypt = require('bcrypt');
-
-
-// Function to check if the user exists
-const doesExist = (username) => {
-  let userswithsamename = users.filter((user) => {
-    return user.username === username;
-  });
-  return userswithsamename.length > 0;
-};
 
 
 // Route to handle user registration
@@ -27,7 +19,7 @@ public_users.post("/register", (req, res) => {
     data["error"] = "username and/or password are not provided.";
   } else if (username && password) {
     // check the username whether it exists or not
-    if (!doesExist(username)) {
+    if (!helpers.doesExist(users, username)) {
       bcrypt.hash(password, 10, function(error, hash) {
         users.push({"username": username, "password": hash});
       });
@@ -51,62 +43,33 @@ public_users.get('/',function (req, res) {
   res.send(books);
 });
 
-function filterBooksUsingTypicalLoop(isbn) {
-  let foundBooks = [];
-  let book;
-  for (let bookId in books) {
-    book = books[bookId];
-    // console.log(book);
-    if (book["isbn"] === isbn) {
-      foundBooks.push(book);
-    }
-  }
-  return foundBooks;
-}
-
-function filterBooksIteratingOverDictionary(fieldName, fieldValue) {
-  const _books = Object.values(books);
-  const foundBooks = _books.filter((book) => book[fieldName] === fieldValue);
-  return foundBooks;
-}
-
-
-function findBookReviewsByISBN(isbn) {
-  const _books = Object.values(books);
-  const foundBook =_books.find((book) => book["isbn"] === isbn);
-  console.log("Found:", foundBook);
-  // https://stackoverflow.com/a/6072687/865603
-  // return Object.keys(foundBook).length !== 0 ? foundBook.reviews : {}
-  return foundBook !== undefined ? foundBook.reviews : {}
-}
-
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn',function (req, res) {
   const isbn = req.params.isbn;
   
-  // const foundBooks = filterBooksUsingTypicalLoop(isbn);
-  const foundBooks = filterBooksIteratingOverDictionary("isbn", isbn);
+  // const foundBooks = helpers.filterBooksUsingTypicalLoop(isbn);
+  const foundBooks = helpers.filterBooksIteratingOverDictionary("isbn", isbn);
   res.send(foundBooks);
 });
   
 // Get book details based on author
 public_users.get('/author/:author',function (req, res) {
   const author = req.params.author;
-  const foundBooks = filterBooksIteratingOverDictionary("author", author);
+  const foundBooks = helpers.filterBooksIteratingOverDictionary("author", author);
   res.send(foundBooks);
 });
 
 // Get all books based on title
 public_users.get('/title/:title',function (req, res) {
   const title = req.params.title;
-  const foundBooks = filterBooksIteratingOverDictionary("title", title);
+  const foundBooks = helpers.filterBooksIteratingOverDictionary("title", title);
   res.send(foundBooks);
 });
 
 //  Get book review
 public_users.get('/review/:isbn',function (req, res) {
   const isbn = req.params.isbn;
-  const reviews = findBookReviewsByISBN(isbn);
+  const reviews = helpers.findBookReviewsByISBN(isbn);
   res.send(reviews);
 });
 
