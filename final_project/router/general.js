@@ -53,7 +53,12 @@ public_users.get('/isbn/:isbn',function (req, res) {
   
   // const foundBooks = helpers.filterBooksUsingTypicalLoop(isbn);
   const foundBooks = helpers.filterBooksIteratingOverDictionary("isbn", isbn);
-  res.send(foundBooks);
+  const getBookDetails = new Promise((resolve, reject) => {
+    resolve(res.send(foundBooks));
+  });
+  getBookDetails.then(() => {
+    console.log("The details of the book ISBN " + isbn + " have been returned!");
+  })
 });
   
 // Get book details based on author
