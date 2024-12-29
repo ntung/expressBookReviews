@@ -40,7 +40,11 @@ public_users.post("/register", (req, res) => {
 
 // Get the book list available in the shop
 public_users.get('/',function (req, res) {
-  res.send(books);
+  const getBooks = new Promise((resolve, reject) => {
+    resolve(res.send(JSON.stringify({books}, null, 4)));
+  });
+  getBooks.then(() => 
+    console.log("All books were retried and responded to the client!"))
 });
 
 // Get book details based on ISBN
