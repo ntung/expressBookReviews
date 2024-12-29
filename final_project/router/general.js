@@ -2,13 +2,47 @@ const express = require('express');
 let books = require("./booksdb.js");
 let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
+let hashPassword = require("./auth_users.js").hashPassword;
 const public_users = express.Router();
 
 
-public_users.post("/register", (req,res) => {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+// Function to check if the user exists
+const doesExist = (username) => {
+  let userswithsamename = users.filter((user) => {
+    return user.username === username;
+  });
+  return userswithsamename.length > 0;
+};
+
+
+// Route to handle user registration
+public_users.post("/register", (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+
+  const data = {};
+  if ((username === undefined) || (password === undefined)) {
+    data["status_code"] = 400; 
+    data["error"] = "username and/or password are not provided.";
+  } else if (username && password) {
+    // check the username whether it exists or not
+    if (!doesExist(username)) {
+      const encryptedPassword = hashPassword(password);
+      users.push({"username": username, "password": encryptedPassword});
+      data["status_code"] = 200;
+      data["message"] = "User successfully registered. Now you can login.";
+    } else {
+      data["status_code"] = 404;
+      data["error"] = "User already exists!";
+    }
+  } else {
+    data["status_code"] = 404;
+    data["error"] = "Unable to register user.";
+  }
+
+  res.status(data["status_code"]).json(data);
 });
+
 
 // Get the book list available in the shop
 public_users.get('/',function (req, res) {
