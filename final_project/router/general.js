@@ -34,6 +34,16 @@ function filterBooksIteratingOverDictionary(fieldName, fieldValue) {
   return foundBooks;
 }
 
+
+function findBookReviewsByISBN(isbn) {
+  const _books = Object.values(books);
+  const foundBook =_books.find((book) => book["isbn"] === isbn);
+  console.log("Found:", foundBook);
+  // https://stackoverflow.com/a/6072687/865603
+  // return Object.keys(foundBook).length !== 0 ? foundBook.reviews : {}
+  return foundBook !== undefined ? foundBook.reviews : {}
+}
+
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn',function (req, res) {
   const isbn = req.params.isbn;
@@ -59,8 +69,9 @@ public_users.get('/title/:title',function (req, res) {
 
 //  Get book review
 public_users.get('/review/:isbn',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+  const isbn = req.params.isbn;
+  const reviews = findBookReviewsByISBN(isbn);
+  res.send(reviews);
 });
 
 module.exports.general = public_users;
