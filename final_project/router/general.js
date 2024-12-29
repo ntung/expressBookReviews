@@ -28,9 +28,9 @@ function filterBooksUsingTypicalLoop(isbn) {
   return foundBooks;
 }
 
-function filterBooksIteratingOverDictionary(isbn) {
+function filterBooksIteratingOverDictionary(fieldName, fieldValue) {
   const _books = Object.values(books);
-  const foundBooks = _books.filter((book) => book.isbn === isbn);
+  const foundBooks = _books.filter((book) => book[fieldName] === fieldValue);
   return foundBooks;
 }
 
@@ -39,14 +39,15 @@ public_users.get('/isbn/:isbn',function (req, res) {
   const isbn = req.params.isbn;
   
   // const foundBooks = filterBooksUsingTypicalLoop(isbn);
-  const foundBooks = filterBooksIteratingOverDictionary(isbn);
+  const foundBooks = filterBooksIteratingOverDictionary("isbn", isbn);
   res.send(foundBooks);
 });
   
 // Get book details based on author
 public_users.get('/author/:author',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+  const author = req.params.author;
+  const foundBooks = filterBooksIteratingOverDictionary("author", author);
+  res.send(foundBooks);
 });
 
 // Get all books based on title
