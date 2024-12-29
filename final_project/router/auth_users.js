@@ -64,6 +64,37 @@ regd_users.post("/login", (req, res) => {
   
 });
 
+// Delete a book review
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+  // Check if user is authenticated
+  if (req.session.authorization) {
+    console.log("logged in");
+    let token = req.session.authorization['accessToken']; // Access Token
+    
+    // Verify JWT token for user authentication
+    jwt.verify(token, "access", (err, user) => {
+      if (!err) {
+        const isbn = req.params.isbn;
+        const book = helpers.findBookByISBN(isbn);
+        if (book === undefined) {
+          return res.status(200).json({ message: `Book with ISBN: ${isbn} not found.`});
+        }
+        req.user = user; // Set authenticated user data on the request object
+        const username = req.session.authorization['username'];
+    
+        const result = deleteMyReview(username, book);
+        return res.status(200).json(result);
+      } else {
+        // Return error if token verification fails
+        return res.status(403).json({ message: "User not authenticated" }); 
+      }
+    });
+  // Return error if no access token is found in the session
+  } else {
+    return res.status(403).json({ message: "User not logged in" });
+  }
+});
+
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
   // Check if user is authenticated
@@ -133,6 +164,24 @@ function addOrUpdateReview(username, isbn, review) {
     console.log("update");
     return {action: "updated", reviews: reviews};
   }
+}
+
+function deleteMyReview(username, book) {
+  const reviews = book["reviews"];
+  const found = false;
+  for (const [key, value] of Object.entries(reviews)) {
+    if (value['username'] === username) {
+      found = true;
+      delete reviews[key];
+      break;
+    }
+  }
+  let message = 
+    `Your review for this book (ISBN: ${book['isbn']}) has been deleted.`;
+  if (!found) {
+    message = `You haven't made any review for this book (ISBN: ${book['isbn']}).`;
+  }
+  return {message: message};
 }
 
 module.exports.authenticated = regd_users;
