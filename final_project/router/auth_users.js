@@ -23,8 +23,7 @@ async function authenticatedUser(username, password) { // returns boolean
   } else {
     console.log("found user", validUser);
   }
-  const match = await bcrypt.compare(password, validUser.password);
-  return match;
+  return await bcrypt.compare(password, validUser.password);
 }
 
 
@@ -33,7 +32,7 @@ const isValid = (username) => { // returns boolean
   return username;
 }
 
-// only registered users can login
+// only registered users can log in
 regd_users.post("/login", (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
@@ -79,7 +78,8 @@ regd_users.delete("/auth/review/:isbn", (req, res) => {
         if (book === undefined) {
           return res.status(200).json({ message: `Book with ISBN: ${isbn} not found.`});
         }
-        req.user = user; // Set authenticated user data on the request object
+        // Set authenticated user data on the request object
+        req.user = user;
         const username = req.session.authorization['username'];
     
         const result = deleteMyReview(username, book);
@@ -138,8 +138,7 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
 
 async function hashPassword(password) {
   const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
-  return hashedPassword;
+  return await bcrypt.hash(password, salt);
 }
 
 function addOrUpdateReview(username, isbn, review) {
@@ -168,7 +167,7 @@ function addOrUpdateReview(username, isbn, review) {
 
 function deleteMyReview(username, book) {
   const reviews = book["reviews"];
-  const found = false;
+  let found = false;
   for (const [key, value] of Object.entries(reviews)) {
     if (value['username'] === username) {
       found = true;
