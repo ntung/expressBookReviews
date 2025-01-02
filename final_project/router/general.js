@@ -41,7 +41,8 @@ public_users.post("/register", (req, res) => {
 // Get the book list available in the shop
 public_users.get('/',function (req, res) {
   const getBooks = new Promise((resolve, reject) => {
-    resolve(res.send(JSON.stringify({books}, null, 4)));
+    // resolve(res.send(JSON.stringify({books}, null, 4)));
+    resolve(res.send(books));
   });
   getBooks.then(() => 
     console.log("All books were retried and responded to the client!"))
